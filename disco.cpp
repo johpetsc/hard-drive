@@ -122,12 +122,12 @@ int escreverArquivo(track_array *cylinder){
         while((i<512)){
             file2.read(&cylinder[pos_cilindro[0]].track[pos_cilindro[1]].sector[pos_cilindro[2]].bytes_s[i], sizeof(char));
             cout << cylinder[pos_cilindro[0]].track[pos_cilindro[1]].sector[pos_cilindro[2]].bytes_s[i];
-            i++;
             if(file2.eof() == 1){
-                fat[setor_atual].eof = 1;
+                fat[i].eof = 1;
                 file2.close();
                 return 0;
             }
+            i++;
         }
         getchar();
         cout << "}";
@@ -161,7 +161,9 @@ int escreverArquivo(track_array *cylinder){
 
 void lerArquivo(track_array *cylinder){
     string arquivo = "Teste1.txt";
+    string saida = "Saida.txt";
     int i = 0;
+    ofstream file;
     
     //cout << "Nome do Arquivo .txt:" << endl;
     //cin >> arquivo;
@@ -170,7 +172,13 @@ void lerArquivo(track_array *cylinder){
         cout << fatl[i].file_name;
         i++;
     }
+    i = 0;
     cout << "{" << fatl[i].file_name << "}";
+    file.open(saida.c_str());
+    while(fat[i].eof != 1){
+        file.write(&cylinder[0].track[0].sector[0].bytes_s[i], sizeof(char));
+        i++;
+    }
 }
 
 void apagarArquivo(){
