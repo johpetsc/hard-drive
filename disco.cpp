@@ -2,13 +2,14 @@
 #include <fstream>
 #include <string>
 #include <cstdio>
+#include <stdio.h>
 
 using namespace std;
 
 int arquivos = 0;
 
 typedef struct block{
-    unsigned char bytes_s[512];
+    char bytes_s[512];
 } block;
 
 typedef struct sector_array{
@@ -33,11 +34,32 @@ typedef struct fatend_s{
 fatlist *fatl;
 fatend *fat;
 
+void oneToThree(int index, int cyl_trk_sec[]){
+	int t;
+	int s;
+    int c = index/300;
+
+    index -= 300*c;
+    if((index/60) >= 5){
+        t = ((index/60)/5)-1;
+    }else{
+        t = (index/60);
+    }
+    s = index%60;
+
+
+    cyl_trk_sec[0] = c;
+    cyl_trk_sec[1] = t;
+    cyl_trk_sec[2] = s;
+}
+
 void criaFAT(int pos_inicial, string arquivo){
     fatl = new fatlist[arquivos+1];
 
     fatl[arquivos].file_name = arquivo;
     fatl[arquivos].first_sector = pos_inicial;
+
+    cout << "{" << fatl[0].file_name << "}";
 
 }
 int procuraFAT(){
@@ -68,8 +90,9 @@ int FAT(string entrada){
     return 0;
 }
 
-void escreverArquivo(track_array *cylinder){
-    ifstream file;
+int escreverArquivo(track_array *cylinder){
+    fstream file;
+    ifstream file2;
     string arquivo = "Teste1.txt";
     streampos tamanhoArquivo;
 
@@ -84,19 +107,30 @@ void escreverArquivo(track_array *cylinder){
     int pos_inicial = procuraFAT();
 
     cout << "Nome: " << arquivo << " Tamanho: " << tamanhoArquivo << endl;
-
-    int clusters = (tamanhoArquivo/(512*4));
-
-    file.open(arquivo.c_str());
-    int i = 0, j, flag;
     int pos_cilindro[] = {0, 0, 0};
-    int aux, setor, prox_setor, setor_atual;
+    int clusters = (tamanhoArquivo/(512*4));
+    criaFAT(0, arquivo);
+    oneToThree(pos_inicial, pos_cilindro);
 
-    while(setor < (clusters*4)){
+    int i = 0, j;
+    int aux, setor = 0, prox_setor, setor_atual;
+    file2.open(arquivo.c_str());
+
+    while(setor < tamanhoArquivo){
         setor_atual = pos_inicial;
-        for(i = 0; i < 512; i++){
-            //file << cylinder[pos_cilindro[0]].track[pos_cilindro[1]].sector[pos_inicial[2]].bytes_s;
+        getchar();
+        while((i<512)){
+            file2.read(&cylinder[pos_cilindro[0]].track[pos_cilindro[1]].sector[pos_cilindro[2]].bytes_s[i], sizeof(char));
+            cout << cylinder[pos_cilindro[0]].track[pos_cilindro[1]].sector[pos_cilindro[2]].bytes_s[i];
+            i++;
+            if(file2.eof() == 1){
+                fat[setor_atual].eof = 1;
+                file2.close();
+                return 0;
+            }
         }
+        getchar();
+        cout << "}";
         setor++;
 
         if(setor%4 == 0){
@@ -121,16 +155,22 @@ void escreverArquivo(track_array *cylinder){
         prox_setor = pos_inicial;
     }
     fat[setor_atual].eof = 1;
-
+    file2.close();
+    return 0;
 }
 
-void lerArquivo(){
-    string arquivo;
-    int a;
+void lerArquivo(track_array *cylinder){
+    string arquivo = "Teste1.txt";
+    int i = 0;
     
-    cout << "Nome do Arquivo .txt:" << endl;
-    cin >> arquivo;
+    //cout << "Nome do Arquivo .txt:" << endl;
+    //cin >> arquivo;
 
+    while((arquivo.compare(fatl[i].file_name) != 0) && (i <= arquivos)) {
+        cout << fatl[i].file_name;
+        i++;
+    }
+    cout << "{" << fatl[i].file_name << "}";
 }
 
 void apagarArquivo(){
@@ -168,10 +208,10 @@ int main(){
         cin >> entrada;
 
         switch (entrada){
-            case 1: arquivos++;
-                    escreverArquivo(cylinder);
+            case 1: escreverArquivo(cylinder);
+                    arquivos++;
                     break;
-            case 2: lerArquivo();
+            case 2: lerArquivo(cylinder);
                     break;
             case 3: apagarArquivo();
                     break;
