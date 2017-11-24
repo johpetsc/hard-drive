@@ -11,4 +11,17 @@ qqqqqqqqqqqqqqqint setor = fatl[i].first_sector;
             file2.write(&cylinder[c_t_s[0]].track[c_t_s[1]].sector[c_t_s[2]].bytes_s[i], sizeof(char));
             cout << cylinder[c_t_s[0]].track[c_t_s[1]].sector[c_t_s[2]].bytes_s[i];
             if(tamanhoAr
+          11qqqqqqqqqqqqqqqint setor = fatl[i].first_sector;
+    cout << "setor: " << setor << endl;
+    int c_t_s[] = {0, 0, 0};
+    posicaoHD(setor, c_t_s);
+    i = 0;
+    cout << "{" << fatl[i].file_name << "}";
+    file2.open(saida.c_str());
+    int j = 0;
+    while(1){
+        while((i<512)){
+            file2.write(&cylinder[c_t_s[0]].track[c_t_s[1]].sector[c_t_s[2]].bytes_s[i], sizeof(char));
+            cout << cylinder[c_t_s[0]].track[c_t_s[1]].sector[c_t_s[2]].bytes_s[i];
+            if(tamanhoAr
           11

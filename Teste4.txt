@@ -1,0 +1,45 @@
+pos_inicial
+        if(setor%4 == 0){
+            int livre = 0;
+            while(livre == 0){
+                if(c_t_s[2] == 60){
+                    c_t_s[1]++;
+                    c_t_s[2] = 0;
+                    if(c_t_s[1] == 5){
+                        c_t_s[0]++;
+                        c_t_s[1] = 0;
+                    }
+                    if(c_t_s[0] == 10){
+                        cout << "Sem 
+        if(setor%4 == 0){
+            int livre = 0;
+            while(livre == 0){
+                if(c_t_s[2] == 60){
+                    c_t_s[1]++;
+                    c_t_s[2] = 0;
+                    if(c_t_s[1] == 5){
+        
+        if(setor%4 == 0){
+            int livre = 0;
+            while(livre == 0){
+                if(c_t_s[2] == 60){
+                    c_t_s[1]++;
+                    c_t_s[2] = 0;
+                    if(c_t_s[1] == 5){
+                        c_t_s[0]++;
+                        c_t_s[1] = 0;
+                    }
+        if(setor%4 == 0){
+            int livre = 0;
+            while(livre == 0){
+                if(c_t_s[2] == 60){
+                    c_t_s[1]++;
+                    c_t_s[2] = 0;
+                    if(c_t_s[1] == 5){
+                        c_t_s[0]++;
+                        c_t_s[1] = 0;
+                    }
+                    if(c_t_s[0] == 10){
+                        cout << "Sem 
+                    if(c_t_s[0] == 10){
+                        cout << "Sem 
