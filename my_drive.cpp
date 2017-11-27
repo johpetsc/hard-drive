@@ -3,6 +3,7 @@
 #include <string>
 #include <cstdio>
 #include <cmath>
+#include <vector>
 
 using namespace std;
 
@@ -33,7 +34,7 @@ typedef struct fatend_s{
 } fatend;
 //Structs para a tabela FAT
 
-fatlist *fatl;
+vector<fatlist> fatl(1);
 fatend *fat;
 
 void posicaoHD(int pos_inicial, int c_t_s[]){
@@ -56,8 +57,8 @@ void posicaoHD(int pos_inicial, int c_t_s[]){
 
 void criaFAT(int pos_inicial, string arquivo){
     //Guarda o nome do arquivo e a posição do seu primeiro setor.
-    fatl = new fatlist[arquivos+1];
-
+    
+    fatl.resize(arquivos+1);
     fatl[arquivos].file_name = arquivo;
     fatl[arquivos].first_sector = pos_inicial;
 
@@ -67,6 +68,7 @@ int procuraFAT(){
     int i = 0, j = 0, k = 0;
 
     while(fat[i].used == 1){
+        
 		i++;
 		if(i % 60 == 0){
 			j++;
@@ -85,9 +87,33 @@ int procuraFAT(){
 int FAT(){
     //Função pra mostrar a tabela fat
     //Falta fazer
+    fstream file;
+    int i = 0,j = 0,tamanhoArquivo;
+    
+    string nome;
     
     cout << "NOME:          TAMANHO EM DISCO         LOCALIZACAO" << endl;
+    while(i < arquivos){
+		if(fatl[i].file_name.compare("0") != 0){
+            nome = fatl[i].file_name;
+			file.open(nome.c_str());//abre o arquivo
+            file.seekg(0, ios::end);//posiciona no final do arquivo
+            tamanhoArquivo = file.tellg();//pega o tamanho em bytes do arquivo
+            file.close();
 
+			printf("\n%s%12d Bytes                  ", nome.c_str(), tamanhoArquivo);
+			j = fatl[i].first_sector;
+            
+            
+			while(fat[j].eof != 1){
+			    printf("%d,", j);
+				j = fat[j].next;
+			}
+            printf("%d", j);
+			printf("\n\n");
+		}
+		i++;
+}
     return 0;
 }
 
@@ -105,9 +131,9 @@ int escreverArquivo(track_array *cylinder){
     file.seekg(0, ios::end);//posiciona no final do arquivo
     streampos tamanhoArquivo = file.tellg();//pega o tamanho em bytes do arquivo
     file.close();//fecha o arquivo
-
+    
     int pos_inicial = procuraFAT();//posição a partir da qual pode começar a ser gravado o arquivo
-
+   
     cout << "Nome: " << arquivo << " Tamanho: " << tamanhoArquivo << endl;
     int c_t_s[] = {0, 0, 0};//posição do cilindro, trilha e setor
     int clusters = floor(tamanhoArquivo/(512*4))+1;//quantidade de clusters pro arquivo
@@ -126,15 +152,19 @@ int escreverArquivo(track_array *cylinder){
         while((i<512)){//escreve cada byte do arquivo na memória
             file2.read(&cylinder[c_t_s[0]].track[c_t_s[1]].sector[c_t_s[2]].bytes_s[i], sizeof(char));
             if(file2.eof() == 1){//verifica se terminou o arquivo
-                fat[pos_inicial+setor+1].eof = 1;
+                fat[pos_inicial].eof = 1;
                 file2.close();
+                fat[pos_inicial].used = 1;
                 return 0;
             }
             i++;
         }
+        fat[pos_inicial].used = 1;
+        fat[pos_inicial].next = pos_inicial+1;
         i = 0;
         c_t_s[2]++;
         setor++;
+        pos_inicial++;
 
         //depois de gravar um cluster procura a posição do próximo cluster livre
         if(setor%4 == 0){
@@ -154,14 +184,16 @@ int escreverArquivo(track_array *cylinder){
                     while((fat[c_t_s[2]].used == 1) && (c_t_s[2] != 60)){
                         c_t_s[2] += 4;
                     }
-                    if(fat[c_t_s[2]].used == 1){
+                    if(fat[c_t_s[2]].used == 0){
+                        pos_inicial = c_t_s[2];
                         livre = 1;
                     }
                 } else {
                     while((fat[c_t_s[2]].used == 1) && (c_t_s[2] != 60)){
                         c_t_s[2] += 4;
                     }
-                    if(fat[c_t_s[2]].used == 1){
+                    if(fat[c_t_s[2]].used == 0){
+                        pos_inicial = c_t_s[2];
                         livre = 1;
                     }
                 }
@@ -220,32 +252,40 @@ int lerArquivo(track_array *cylinder){
     }
 }
 
-void apagarArquivo(){
+int apagarArquivo(){
     //falta terminar
     string arquivo;
-    int pos;
+    int pos,j;
+    int i = 0;
     
     cout << "Nome do Arquivo .txt:" << endl;
     cin >> arquivo;
 
-    pos = procuraFAT();
-
-    while(fat[pos].eof != 1){
-        fat[pos].used = 0;
-        pos++;
+    while((fatl[i].file_name != arquivo)){
+        if (i < arquivos){
+            i++;
+        }
+        else{
+            return 0;
+        }
     }
-    fat[pos].eof = 0;
-
-    remove(arquivo.c_str());
+    j = fatl[i].first_sector;
+    fatl[i].file_name = "0";
+    while(fat[j].eof != 1){
+		fat[j].used = 0;
+		j = fat[j].next;
+    }
+    fat[j].used = 0;
+    fat[j].eof = 0;
 
 }
 
 
 int main(){
-    int entrada;
+    int entrada,i;
     track_array *cylinder = new track_array[10];
     fat = new fatend[3000];
-
+    
     while(1){
         cout << "1- Escrever arquivo" << endl 
             << "2- Ler arquivo" << endl
@@ -260,7 +300,14 @@ int main(){
                     break;
             case 2: lerArquivo(cylinder);
                     break;
-            case 3: apagarArquivo();
+            case 3: i = apagarArquivo();
+                    if (i == 0){
+                        printf("Arquivo não existe\n");
+                    }
+                    else{
+                        printf("Arquivo excluído com sucesso\n");
+                    }
+                        
                     break;
             case 4: FAT();
                     break;
