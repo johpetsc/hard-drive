@@ -150,7 +150,8 @@ int escreverArquivo(track_array *cylinder){
     while(setor < (clusters*4)){
 
         while((i<512)){//escreve cada byte do arquivo na memória
-            file2.read(&cylinder[c_t_s[0]].track[c_t_s[1]].sector[c_t_s[2]].bytes_s[i], sizeof(char));
+            file2.read(&cylinder[c_t_s[2]].track[c_t_s[1]].sector[c_t_s[0]].bytes_s[i], sizeof(char));
+            cout << cylinder[c_t_s[2]].track[c_t_s[1]].sector[c_t_s[0]].bytes_s[i];
             if(file2.eof() == 1){//verifica se terminou o arquivo
                 fat[pos_inicial].eof = 1;
                 file2.close();
@@ -162,7 +163,7 @@ int escreverArquivo(track_array *cylinder){
         fat[pos_inicial].used = 1;
         fat[pos_inicial].next = pos_inicial+1;
         i = 0;
-        c_t_s[2]++;
+        c_t_s[0]++;
         setor++;
         pos_inicial++;
 
@@ -170,30 +171,30 @@ int escreverArquivo(track_array *cylinder){
         if(setor%4 == 0){
             int livre = 0;
             while(livre == 0){
-                if(c_t_s[2] == 60){
+                if(c_t_s[0] == 60){
                     c_t_s[1]++;
-                    c_t_s[2] = 0;
+                    c_t_s[0] = 0;
                     if(c_t_s[1] == 5){
-                        c_t_s[0]++;
+                        c_t_s[2]++;
                         c_t_s[1] = 0;
                     }
-                    if(c_t_s[0] == 10){
+                    if(c_t_s[2] == 10){
                         cout << "Sem espaço no Disco." << endl;
                         return 0;
                     }
-                    while((fat[c_t_s[2]].used == 1) && (c_t_s[2] != 60)){
-                        c_t_s[2] += 4;
+                    while((fat[c_t_s[0]].used == 1) && (c_t_s[0] != 60)){
+                        c_t_s[0] += 4;
                     }
-                    if(fat[c_t_s[2]].used == 0){
-                        pos_inicial = c_t_s[2];
+                    if(fat[c_t_s[0]].used == 0){
+                        pos_inicial = c_t_s[0];
                         livre = 1;
                     }
                 } else {
-                    while((fat[c_t_s[2]].used == 1) && (c_t_s[2] != 60)){
+                    while((fat[c_t_s[0]].used == 1) && (c_t_s[0] != 60)){
                         c_t_s[2] += 4;
                     }
-                    if(fat[c_t_s[2]].used == 0){
-                        pos_inicial = c_t_s[2];
+                    if(fat[c_t_s[0]].used == 0){
+                        pos_inicial = c_t_s[0];
                         livre = 1;
                     }
                 }
@@ -232,7 +233,8 @@ int lerArquivo(track_array *cylinder){
     int j = 0;
     while(1){
         while((i<512)){//escreve os bytes da memória pro arquivo de saída
-            file2.write(&cylinder[c_t_s[0]].track[c_t_s[1]].sector[c_t_s[2]].bytes_s[i], sizeof(char));
+            file2.write(&cylinder[c_t_s[2]].track[c_t_s[1]].sector[c_t_s[0]].bytes_s[i], sizeof(char));
+            cout << cylinder[c_t_s[2]].track[c_t_s[1]].sector[c_t_s[0]].bytes_s[i];
             if(tamanhoArquivo == j+2){
                     file2.close();
                     return 0;
@@ -241,11 +243,12 @@ int lerArquivo(track_array *cylinder){
             i++;
         }
         i = 0;
-        if(c_t_s[2] == 60){
+        c_t_s[0]++;
+        if(c_t_s[0] == 60){
             c_t_s[1]++;
-            c_t_s[2] = 0;
+            c_t_s[0] = 0;
             if(c_t_s[1] == 5){
-                c_t_s[0]++;
+                c_t_s[2]++;
                 c_t_s[1] = 0;
             }
         }
