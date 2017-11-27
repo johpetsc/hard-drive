@@ -151,7 +151,7 @@ int escreverArquivo(track_array *cylinder){
 
         while((i<512)){//escreve cada byte do arquivo na memória
             file2.read(&cylinder[c_t_s[2]].track[c_t_s[1]].sector[c_t_s[0]].bytes_s[i], sizeof(char));
-            cout << cylinder[c_t_s[2]].track[c_t_s[1]].sector[c_t_s[0]].bytes_s[i];
+            //cout << cylinder[c_t_s[2]].track[c_t_s[1]].sector[c_t_s[0]].bytes_s[i];
             if(file2.eof() == 1){//verifica se terminou o arquivo
                 fat[pos_inicial].eof = 1;
                 file2.close();
@@ -169,14 +169,17 @@ int escreverArquivo(track_array *cylinder){
 
         //depois de gravar um cluster procura a posição do próximo cluster livre
         if(setor%4 == 0){
+            
             int livre = 0;
             while(livre == 0){
                 if(c_t_s[0] == 60){
                     c_t_s[1]++;
                     c_t_s[0] = 0;
+                    
                     if(c_t_s[1] == 5){
                         c_t_s[2]++;
                         c_t_s[1] = 0;
+                    
                     }
                     if(c_t_s[2] == 10){
                         cout << "Sem espaço no Disco." << endl;
@@ -191,7 +194,7 @@ int escreverArquivo(track_array *cylinder){
                     }
                 } else {
                     while((fat[c_t_s[0]].used == 1) && (c_t_s[0] != 60)){
-                        c_t_s[2] += 4;
+                        c_t_s[0] += 4;
                     }
                     if(fat[c_t_s[0]].used == 0){
                         pos_inicial = c_t_s[0];
