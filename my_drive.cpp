@@ -50,9 +50,9 @@ void posicaoHD(int pos_inicial, int c_t_s[]){
     s = pos_inicial%60;
 
 
-    c_t_s[0] = c;
+    c_t_s[0] = s;
     c_t_s[1] = t;
-    c_t_s[2] = s;
+    c_t_s[2] = c;
 }
 
 void criaFAT(int pos_inicial, string arquivo){
@@ -133,13 +133,19 @@ int escreverArquivo(track_array *cylinder){
     file.close();//fecha o arquivo
     
     int pos_inicial = procuraFAT();//posição a partir da qual pode começar a ser gravado o arquivo
-   
+    cout << "asda: " << pos_inicial<<endl;
     cout << "Nome: " << arquivo << " Tamanho: " << tamanhoArquivo << endl;
     int c_t_s[] = {0, 0, 0};//posição do cilindro, trilha e setor
     int clusters = floor(tamanhoArquivo/(512*4))+1;//quantidade de clusters pro arquivo
     //usei floor porque a função ceil não tava funcionando lol(por isso tem o +1)
     cout << "Serão utilizados " << clusters << " para este arquivo." << endl;
-
+    cout << "aa: " << arquivos << endl;
+    while(pos_inicial%4 == 0 && arquivos > 0){
+        fat[pos_inicial].used = 1;
+        fat[pos_inicial].next = pos_inicial+1;
+        pos_inicial++;
+    }
+    cout << "qqq: " << pos_inicial << endl;
     criaFAT(pos_inicial, arquivo);//adiciona o arquivo na tabela FAT
     posicaoHD(pos_inicial, c_t_s);//pega a posição inicial na estrutura do vetor
 
@@ -148,7 +154,7 @@ int escreverArquivo(track_array *cylinder){
     file2.open(arquivo.c_str());
 
     while(setor < (clusters*4)){
-
+        cout << "cilindro: " << c_t_s[2] << " trilha: " << c_t_s[1] << " setor: " << c_t_s[0] << endl;
         while((i<512)){//escreve cada byte do arquivo na memória
             file2.read(&cylinder[c_t_s[2]].track[c_t_s[1]].sector[c_t_s[0]].bytes_s[i], sizeof(char));
             //cout << cylinder[c_t_s[2]].track[c_t_s[1]].sector[c_t_s[0]].bytes_s[i];
@@ -156,6 +162,7 @@ int escreverArquivo(track_array *cylinder){
                 fat[pos_inicial].eof = 1;
                 file2.close();
                 fat[pos_inicial].used = 1;
+                cout << "pos: " << pos_inicial<<endl;
                 return 0;
             }
             i++;
@@ -170,6 +177,7 @@ int escreverArquivo(track_array *cylinder){
         //depois de gravar um cluster procura a posição do próximo cluster livre
         if(setor%4 == 0){
             
+            pos_inicial++;
             int livre = 0;
             while(livre == 0){
                 if(c_t_s[0] == 60){
