@@ -40,9 +40,9 @@ fatend *fat;
 void posicaoHD(int pos_inicial, int c_t_s[]){
     //Recebe uma posição de 0-3000 e retorna o cilindro, trilha e setor.
 
-    c_t_s[0] = floor((pos_inicial%300)%60);
-    c_t_s[1] = floor((pos_inicial%300)/60);
-    c_t_s[2] = floor(pos_inicial/300);
+    c_t_s[0] = floor((pos_inicial%600)%60);
+    c_t_s[1] = floor((pos_inicial%600)/60);
+    c_t_s[2] = floor(pos_inicial/600);
     cout << "cilindro2: " << c_t_s[2] << " trilha: " << c_t_s[1] << " setor: " << c_t_s[0] << endl;
 
 }
@@ -88,7 +88,7 @@ int FAT(){
 			j = fatl[i].first_sector;
             
             
-			while(fat[j].eof != 1){
+			while((fat[j].eof != 1) && j < 30001){
 			    printf("%d,", j);
 				j = fat[j].next;
 			}
@@ -137,7 +137,7 @@ int escreverArquivo(track_array *cylinder){
     file2.open(arquivo.c_str());
 
     while(setor < (clusters*4)){
-        cout << "cilindro: " << c_t_s[2] << " trilha: " << c_t_s[1] << " setor: " << c_t_s[0] << endl;
+       // cout << "cilindro: " << c_t_s[2] << " trilha: " << c_t_s[1] << " setor: " << c_t_s[0] << endl;
         while((i<512)){//escreve cada byte do arquivo na memória
             file2.read(&cylinder[c_t_s[2]].track[c_t_s[1]].sector[c_t_s[0]].bytes_s[i], sizeof(char));
             //cout << cylinder[c_t_s[2]].track[c_t_s[1]].sector[c_t_s[0]].bytes_s[i];
@@ -148,6 +148,7 @@ int escreverArquivo(track_array *cylinder){
                 for(j = 0;j <(pos_inicial%4);j++){
                     fat[pos_inicial+j].used = 1;
                     fat[pos_inicial+j].eof = 1;
+                     
                 }
                 cout << "pos: " << pos_inicial<<endl;
                 return 0;
@@ -167,23 +168,24 @@ int escreverArquivo(track_array *cylinder){
             
             int livre = 0;
             while(livre == 0){
-                cout << fat[pos_inicial].used << endl;
-                cout << "cilindro3: " << c_t_s[2] << " trilha: " << c_t_s[1] << " setor: " << c_t_s[0] << endl;
+               // cout << fat[pos_inicial].used << endl;
+               // cout << "cilindro3: " << c_t_s[2] << " trilha: " << c_t_s[1] << " setor: " << c_t_s[0] << endl;
                 if(c_t_s[0] == 60){
                     c_t_s[1]++;
                     c_t_s[0] = 0;
                     
-                    if(c_t_s[1] == 5){
+                    if(c_t_s[1] == 10){
                         c_t_s[2]++;
                         c_t_s[1] = 0;
                     
                     }
                     if(c_t_s[2] == 10){
+                        //fat[3000].eof=1;
                         cout << "Sem espaço no Disco." << endl;
                         return 0;
                     }
                     while((fat[pos_inicial].used == 1) && (c_t_s[0] != 60)){
-                        c_t_s[0] += 4;
+                        c_t_s[0] += 1;
                         pos_inicial++;
                     }
                     if(fat[pos_inicial].used == 0){
@@ -207,7 +209,7 @@ int escreverArquivo(track_array *cylinder){
 int lerArquivo(track_array *cylinder){
     string arquivo;
     string saida = "Saida.txt";
-    int i = 0;
+
     fstream file;
     ofstream file2;
     
@@ -225,8 +227,12 @@ int lerArquivo(track_array *cylinder){
     file.close();
 
     int setor = fatl[i].first_sector;//verifica o primeiro setor do arquivo na tabela FAT
+    printf("first_sector: %d\n",setor);
     int c_t_s[] = {0, 0, 0};
     posicaoHD(setor, c_t_s);//procura a posição do setor no hd
+    cout << "cilindro23: " << c_t_s[2] << " trilha: " << c_t_s[1] << " setor: " << c_t_s[0] << endl;
+    getchar();
+    getchar();
     i = 0;
 
     file2.open(saida.c_str());
@@ -242,12 +248,17 @@ int lerArquivo(track_array *cylinder){
             j++;
             i++;
         }
+        cout << "cilindro3: " << c_t_s[2] << " trilha: " << c_t_s[1] << " setor: " << c_t_s[0] << endl;
+                
         i = 0;
+        setor = fat[setor].next;
+        //c_t_s[] = {0, 0, 0};
+        //posicaoHD(setor,c_t_s);
         c_t_s[0]++;
         if(c_t_s[0] == 60){
             c_t_s[1]++;
             c_t_s[0] = 0;
-            if(c_t_s[1] == 5){
+            if(c_t_s[1] == 10){
                 c_t_s[2]++;
                 c_t_s[1] = 0;
             }
@@ -289,7 +300,7 @@ int apagarArquivo(){
 int main(){
     int entrada,i;
     track_array *cylinder = new track_array[10];
-    fat = new fatend[3000];
+    fat = new fatend[30000];
     
     while(1){
         cout << "1- Escrever arquivo" << endl 
