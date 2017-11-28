@@ -69,7 +69,7 @@ int procuraFAT(){
 
 int FAT(){
     //Função pra mostrar a tabela fat
-    //Falta fazer
+    
     fstream file;
     int i = 0,j = 0,tamanhoArquivo;
     
@@ -147,14 +147,15 @@ int escreverArquivo(track_array *cylinder){
                 fat[pos_inicial].used = 1;
                 for(j = 0;j <(pos_inicial%4);j++){
                     fat[pos_inicial+j].used = 1;
+                    fat[pos_inicial+j].eof = 1;
                 }
                 cout << "pos: " << pos_inicial<<endl;
                 return 0;
             }
             i++;
         }
-        
-        fat[pos_inicial].used = 1;
+        fat[pos_inicial].next = pos_inicial+1; 
+        fat[pos_inicial].used = 1; 
         
         i = 0;
         c_t_s[0]++;
@@ -257,7 +258,7 @@ int lerArquivo(track_array *cylinder){
 int apagarArquivo(){
     //falta terminar
     string arquivo;
-    int pos,j;
+    int pos,j,k=0;
     int i = 0;
     
     cout << "Nome do Arquivo .txt:" << endl;
@@ -275,7 +276,9 @@ int apagarArquivo(){
     fatl[i].file_name = "0";
     while(fat[j].eof != 1){
 		fat[j].used = 0;
-		j = fat[j].next;
+		k = fat[j].next;
+        fat[j].next = 0;
+        j = k;
     }
     fat[j].used = 0;
     fat[j].eof = 0;
