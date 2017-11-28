@@ -150,8 +150,14 @@ int escreverArquivo(track_array *cylinder){
             }
             i++;
         }
-        fat[pos_inicial].used = 1;
-        fat[pos_inicial].next = pos_inicial+1;
+        if(pos_inicial%4 == 0){
+            fat[pos_inicial].used = 1;
+            fat[pos_inicial+1].used = 1;
+            fat[pos_inicial+2].used = 1;
+            fat[pos_inicial+3].used = 1;
+        }
+        
+        
         i = 0;
         c_t_s[0]++;
         setor++;
