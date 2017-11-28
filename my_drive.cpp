@@ -105,10 +105,10 @@ int escreverArquivo(track_array *cylinder){
 
     fstream file;
     ifstream file2;
-    string arquivo = "Teste1.txt";
+    string arquivo;
 
-    //cout << "Nome do Arquivo .txt:" << endl;
-    //cin >> arquivo;
+    cout << "Nome do Arquivo .txt:" << endl;
+    cin >> arquivo;
 
     file.open(arquivo.c_str());//abre o arquivo
     file.seekg(0, ios::end);//posiciona no final do arquivo
@@ -132,7 +132,7 @@ int escreverArquivo(track_array *cylinder){
     criaFAT(pos_inicial, arquivo);//adiciona o arquivo na tabela FAT
     posicaoHD(pos_inicial, c_t_s);//pega a posição inicial na estrutura do vetor
 
-    int i = 0;
+    int i = 0,j;
     int setor = 0;
     file2.open(arquivo.c_str());
 
@@ -145,18 +145,16 @@ int escreverArquivo(track_array *cylinder){
                 fat[pos_inicial].eof = 1;
                 file2.close();
                 fat[pos_inicial].used = 1;
+                for(j = 0;j <(pos_inicial%4);j++){
+                    fat[pos_inicial+j].used = 1;
+                }
                 cout << "pos: " << pos_inicial<<endl;
                 return 0;
             }
             i++;
         }
-        if(pos_inicial%4 == 0){
-            fat[pos_inicial].used = 1;
-            fat[pos_inicial+1].used = 1;
-            fat[pos_inicial+2].used = 1;
-            fat[pos_inicial+3].used = 1;
-        }
         
+        fat[pos_inicial].used = 1;
         
         i = 0;
         c_t_s[0]++;
@@ -169,7 +167,7 @@ int escreverArquivo(track_array *cylinder){
             int livre = 0;
             while(livre == 0){
                 cout << fat[pos_inicial].used << endl;
-                cout << "cilindro3: " << c_t_s[2] << " trilha: " << c_t_s[1] << " setor: " << pos_inicial << endl;
+                cout << "cilindro3: " << c_t_s[2] << " trilha: " << c_t_s[1] << " setor: " << c_t_s[0] << endl;
                 if(c_t_s[0] == 60){
                     c_t_s[1]++;
                     c_t_s[0] = 0;
@@ -185,6 +183,7 @@ int escreverArquivo(track_array *cylinder){
                     }
                     while((fat[pos_inicial].used == 1) && (c_t_s[0] != 60)){
                         c_t_s[0] += 4;
+                        pos_inicial++;
                     }
                     if(fat[pos_inicial].used == 0){
                         livre = 1;
@@ -192,13 +191,12 @@ int escreverArquivo(track_array *cylinder){
                 } else {
                     while((fat[pos_inicial].used == 1) && (c_t_s[0] != 60)){
                         c_t_s[0] += 4;
+                        pos_inicial++;
                     }
                     if(fat[pos_inicial].used == 0){
-                        pos_inicial = c_t_s[0];
                         livre = 1;
                     }
                 }
-                pos_inicial++;
             }
         }
     }
