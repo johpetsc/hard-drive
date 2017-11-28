@@ -39,20 +39,12 @@ fatend *fat;
 
 void posicaoHD(int pos_inicial, int c_t_s[]){
     //Recebe uma posição de 0-3000 e retorna o cilindro, trilha e setor.
-    int t, s, c = pos_inicial/300;
 
-    pos_inicial -= 300*c;
-    if((pos_inicial/60) >= 5){
-        t = ((pos_inicial/60)/5)-1;
-    }else{
-        t = (pos_inicial/60);
-    }
-    s = pos_inicial%60;
+    c_t_s[0] = floor((pos_inicial%300)%60);
+    c_t_s[1] = floor((pos_inicial%300)/60);
+    c_t_s[2] = floor(pos_inicial/300);
+    cout << "cilindro2: " << c_t_s[2] << " trilha: " << c_t_s[1] << " setor: " << c_t_s[0] << endl;
 
-
-    c_t_s[0] = s;
-    c_t_s[1] = t;
-    c_t_s[2] = c;
 }
 
 void criaFAT(int pos_inicial, string arquivo){
@@ -70,16 +62,7 @@ int procuraFAT(){
     while(fat[i].used == 1){
         
 		i++;
-		if(i % 60 == 0){
-			j++;
-			i = j*300;
-		}
-		if(i % 3000 == 0){
-			k++;
-			i = k*60;
-		}
     }
-    
     return i;
 
 }
@@ -122,10 +105,10 @@ int escreverArquivo(track_array *cylinder){
 
     fstream file;
     ifstream file2;
-    string arquivo;
+    string arquivo = "Teste1.txt";
 
-    cout << "Nome do Arquivo .txt:" << endl;
-    cin >> arquivo;
+    //cout << "Nome do Arquivo .txt:" << endl;
+    //cin >> arquivo;
 
     file.open(arquivo.c_str());//abre o arquivo
     file.seekg(0, ios::end);//posiciona no final do arquivo
@@ -133,19 +116,19 @@ int escreverArquivo(track_array *cylinder){
     file.close();//fecha o arquivo
     
     int pos_inicial = procuraFAT();//posição a partir da qual pode começar a ser gravado o arquivo
-    cout << "asda: " << pos_inicial<<endl;
+    cout << "pos_inicial: " << pos_inicial<<endl;
     cout << "Nome: " << arquivo << " Tamanho: " << tamanhoArquivo << endl;
     int c_t_s[] = {0, 0, 0};//posição do cilindro, trilha e setor
     int clusters = floor(tamanhoArquivo/(512*4))+1;//quantidade de clusters pro arquivo
     //usei floor porque a função ceil não tava funcionando lol(por isso tem o +1)
     cout << "Serão utilizados " << clusters << " para este arquivo." << endl;
-    cout << "aa: " << arquivos << endl;
+    cout << "arquivos: " << arquivos << endl;
     while(pos_inicial%4 == 0 && arquivos > 0){
         fat[pos_inicial].used = 1;
         fat[pos_inicial].next = pos_inicial+1;
         pos_inicial++;
     }
-    cout << "qqq: " << pos_inicial << endl;
+    cout << "pos_inicial2: " << pos_inicial << endl;
     criaFAT(pos_inicial, arquivo);//adiciona o arquivo na tabela FAT
     posicaoHD(pos_inicial, c_t_s);//pega a posição inicial na estrutura do vetor
 
@@ -175,11 +158,12 @@ int escreverArquivo(track_array *cylinder){
         pos_inicial++;
 
         //depois de gravar um cluster procura a posição do próximo cluster livre
-        if(setor%4 == 0){
+        if(c_t_s[0]%4 == 0){
             
-            pos_inicial++;
             int livre = 0;
             while(livre == 0){
+                cout << fat[pos_inicial].used << endl;
+                cout << "cilindro3: " << c_t_s[2] << " trilha: " << c_t_s[1] << " setor: " << pos_inicial << endl;
                 if(c_t_s[0] == 60){
                     c_t_s[1]++;
                     c_t_s[0] = 0;
@@ -193,22 +177,22 @@ int escreverArquivo(track_array *cylinder){
                         cout << "Sem espaço no Disco." << endl;
                         return 0;
                     }
-                    while((fat[c_t_s[0]].used == 1) && (c_t_s[0] != 60)){
+                    while((fat[pos_inicial].used == 1) && (c_t_s[0] != 60)){
                         c_t_s[0] += 4;
                     }
-                    if(fat[c_t_s[0]].used == 0){
-                        pos_inicial = c_t_s[0];
+                    if(fat[pos_inicial].used == 0){
                         livre = 1;
                     }
                 } else {
-                    while((fat[c_t_s[0]].used == 1) && (c_t_s[0] != 60)){
+                    while((fat[pos_inicial].used == 1) && (c_t_s[0] != 60)){
                         c_t_s[0] += 4;
                     }
-                    if(fat[c_t_s[0]].used == 0){
+                    if(fat[pos_inicial].used == 0){
                         pos_inicial = c_t_s[0];
                         livre = 1;
                     }
                 }
+                pos_inicial++;
             }
         }
     }
